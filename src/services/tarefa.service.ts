@@ -7,16 +7,17 @@ export class TarefaService {
     this.prisma = new PrismaClient();
   }
 
-  public async createTarefa(tarefa: string): Promise<PrismaTarefa> {
+  public async createTarefa(
+    idUser: number,
+    tarefa: string
+  ): Promise<PrismaTarefa> {
     if (!tarefa || typeof tarefa !== "string" || tarefa.trim() === "") {
       throw new Error("A tarefa é obrigatória e deve ser uma string não vazia");
     }
 
-    const novaTarefa = await this.prisma.tarefa.create({
-      data: { tarefa },
+    return await this.prisma.tarefa.create({
+      data: { idUser, tarefa },
     });
-
-    return novaTarefa;
   }
 
   public async getAllTarefas(): Promise<PrismaTarefa[]> {

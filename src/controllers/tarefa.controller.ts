@@ -56,8 +56,15 @@ export class TarefaController {
 
   public async createTarefa(req: Request, res: Response) {
     try {
+      const idUser = req.session.userId;
       const { tarefa } = req.body;
-      const novaTarefa = await this.tarefaService.createTarefa(tarefa);
+      if (!idUser) {
+        return this.sendResponse(res, {
+          code: 403,
+          message: "Usuário não autenticado",
+        });
+      }
+      const novaTarefa = await this.tarefaService.createTarefa(idUser, tarefa);
       this.sendResponse(res, {
         code: 201,
         message: "Tarefa criada com sucesso",
@@ -67,7 +74,6 @@ export class TarefaController {
       this.sendResponse(res, { code: 400, message: error.message });
     }
   }
-
   public async updateTarefa(req: Request, res: Response) {
     try {
       const codigo = parseInt(req.params.codigo);

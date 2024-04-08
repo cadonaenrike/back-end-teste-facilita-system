@@ -16,6 +16,20 @@ model Produto {
 }
 
 model Tarefa {
-  codigo        Int      @id @default(autoincrement())
+  codigo  Int    @id @default(autoincrement())
+  idUser  Int
   tarefa  String
+  user    User   @relation(fields: [idUser], references: [id])
+
+  @@map("tarefas")
+}
+
+model User {
+  id      Int      @id @default(autoincrement())
+  nome    String    @unique
+  senha   String
+  token   String?
+  tarefas Tarefa[]
+
+  @@map("users")
 }

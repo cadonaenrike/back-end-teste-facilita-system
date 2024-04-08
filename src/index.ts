@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import csurf from "csurf";
 import tarefasRoutes from "./routes/tarefa.routes";
+import { loginRouter } from "./routes/login.routes";
 
 dotenv.config();
 
@@ -21,6 +22,8 @@ app.get("/csrf-token", csrfProtection, (req: Request, res: Response) => {
 });
 
 app.use("/api", tarefasRoutes);
+
+app.use("/api", loginRouter);
 
 app.get("/", (req: Request, res: Response) => {
   res.send("API está rodando. Use /api para acessar as tarefas.");
