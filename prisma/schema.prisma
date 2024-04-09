@@ -8,6 +8,7 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") 
 }
 
+///////////////////// esse model e de outro projeto mas utilizei o mesmo banco pois ele e free//////////////////////////////////
 model Produto {
   codigo        Int      @id @default(autoincrement())
   descricao     String
@@ -15,6 +16,7 @@ model Produto {
   data_cadastro DateTime @default(now())
 }
 
+///////////////////// esse model e de outro projeto mas utilizei o mesmo banco pois ele e free//////////////////////////////////
 model Tarefa {
   codigo  Int    @id @default(autoincrement())
   idUser  Int
