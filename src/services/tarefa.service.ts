@@ -12,57 +12,79 @@ export class TarefaService {
     tarefa: string
   ): Promise<PrismaTarefa> {
     if (!tarefa || typeof tarefa !== "string" || tarefa.trim() === "") {
-      throw new Error("A tarefa é obrigatória e deve ser uma string não vazia");
+      throw new Error(
+        "A tarefa é obrigatória e deve ser uma string não vazia."
+      );
     }
 
+    // Cria uma nova tarefa associada ao idUser fornecido
     return await this.prisma.tarefa.create({
-      data: { idUser, tarefa },
+      data: {
+        idUser, // Associa a tarefa ao usuário
+        tarefa, // Usa o campo conforme definido no esquema
+      },
     });
   }
 
-  public async getAllTarefas(): Promise<PrismaTarefa[]> {
-    return this.prisma.tarefa.findMany();
+  public async getAllTarefas(idUser: number): Promise<PrismaTarefa[]> {
+    // Retorna todas as tarefas associadas ao idUser
+    return this.prisma.tarefa.findMany({
+      where: {
+        idUser, // Filtra as tarefas pelo idUser
+      },
+    });
   }
 
-  public async getTarefaByCodigo(codigo: number): Promise<PrismaTarefa | null> {
-    return this.prisma.tarefa.findUnique({
-      where: { codigo },
+  public async getTarefaByCodigo(
+    idUser: number,
+    codigo: number
+  ): Promise<PrismaTarefa | null> {
+    // Retorna uma tarefa específica pelo código, garantindo que pertença ao idUser
+    return this.prisma.tarefa.findFirst({
+      where: {
+        codigo,
+        idUser, // Adiciona a verificação de idUser
+      },
     });
   }
 
   public async updateTarefa(
+    idUser: number,
     codigo: number,
     tarefa: string
   ): Promise<PrismaTarefa> {
-    const tarefaExistente = await this.prisma.tarefa.findUnique({
-      where: { codigo },
+    // Verifica se a tarefa existe e pertence ao usuário antes de atualizá-la
+    const tarefaExistente = await this.prisma.tarefa.findFirst({
+      where: { codigo, idUser },
     });
 
     if (!tarefaExistente) {
       throw new Error("Tarefa não encontrada");
     }
 
-    const tarefaAtualizada = await this.prisma.tarefa.update({
+    // Atualiza a tarefa
+    return await this.prisma.tarefa.update({
       where: { codigo },
-      data: { tarefa },
+      data: { tarefa }, // Atualiza o campo tarefa
     });
-
-    return tarefaAtualizada;
   }
 
-  public async deleteTarefa(codigo: number): Promise<PrismaTarefa | string> {
-    const tarefaExistente = await this.prisma.tarefa.findUnique({
-      where: { codigo },
+  public async deleteTarefa(
+    idUser: number,
+    codigo: number
+  ): Promise<PrismaTarefa> {
+    // Verifica se a tarefa existe e pertence ao usuário antes de deletá-la
+    const tarefaExistente = await this.prisma.tarefa.findFirst({
+      where: { codigo, idUser },
     });
 
     if (!tarefaExistente) {
       throw new Error("Tarefa não encontrada");
     }
 
-    const tarefaDeletada = await this.prisma.tarefa.delete({
+    // Deleta a tarefa
+    return await this.prisma.tarefa.delete({
       where: { codigo },
     });
-
-    return tarefaDeletada;
   }
 }

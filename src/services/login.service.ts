@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 
 export class LoginService {
   private prisma = new PrismaClient();
@@ -30,19 +31,49 @@ export class LoginService {
     }
   }
 
-  async login(username: string, password: string, req: any): Promise<boolean> {
+  async updateUserToken(username: string, token: string | null): Promise<void> {
+    await this.prisma.user.update({
+      where: { nome: username },
+      data: { token: token },
+    });
+  }
+
+  async login(username: string, password: string): Promise<string | null> {
     const user = await this.prisma.user.findFirst({
       where: { nome: username },
     });
 
-    if (!user) return false;
+    if (!user) return null;
 
     const passwordMatch = await bcrypt.compare(password, user.senha);
+
     if (passwordMatch) {
-      req.session.userId = user.id;
-      return true;
+      const token = uuidv4() + "." + new Date().getTime();
+      await this.updateUserToken(username, token);
+
+      return token;
     } else {
-      return false;
+      return null;
     }
+  }
+
+  async logout(token: string, newTokenValue: string | null): Promise<void> {
+    // Atualiza o token do usuário para null baseado no token fornecido
+    await this.prisma.user.updateMany({
+      where: {
+        token: token,
+      },
+      data: {
+        token: newTokenValue,
+      },
+    });
+  }
+
+  async validateToken(token: string): Promise<number | null> {
+    const user = await this.prisma.user.findFirst({
+      where: { token },
+    });
+
+    return user ? user.id : null;
   }
 }

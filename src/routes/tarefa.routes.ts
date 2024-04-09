@@ -1,33 +1,20 @@
-import { Router } from "express";
-import { csrfMiddleware } from "../middleware/csrfMiddleware";
+import express from "express";
 import { TarefaController } from "../controllers/tarefa.controller";
+import { tokenAuthenticationMiddleware } from "../Middleware/userToken"; // Ajuste o caminho conforme necessário
 
-const router = Router();
+const router = express.Router();
 const tarefaController = new TarefaController();
 
-router.get("/tarefas", tarefaController.getAllTarefas.bind(tarefaController));
+// Aplicar o middleware de autenticação para todas as rotas de tarefa
+router.use(tokenAuthenticationMiddleware);
 
+router.get("/", tarefaController.getAllTarefas.bind(tarefaController));
 router.get(
-  "/tarefas/:codigo",
+  "/:codigo",
   tarefaController.getTarefaByCodigo.bind(tarefaController)
 );
+router.post("/", tarefaController.createTarefa.bind(tarefaController));
+router.put("/:codigo", tarefaController.updateTarefa.bind(tarefaController));
+router.delete("/:codigo", tarefaController.deleteTarefa.bind(tarefaController));
 
-router.post(
-  "/tarefas",
-  csrfMiddleware,
-  tarefaController.createTarefa.bind(tarefaController)
-);
-
-router.put(
-  "/tarefas/:codigo",
-  csrfMiddleware,
-  tarefaController.updateTarefa.bind(tarefaController)
-);
-
-router.delete(
-  "/tarefas/:codigo",
-  csrfMiddleware,
-  tarefaController.deleteTarefa.bind(tarefaController)
-);
-
-export default router;
+export { router as tarefasRouter };

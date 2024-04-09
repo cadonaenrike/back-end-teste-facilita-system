@@ -1,9 +1,6 @@
-// LoginController.ts
 import { Request, Response } from "express";
 import { LoginService } from "../services/login.service";
-
 import { ResponseDto } from "../dtos/response.dto";
-
 export class LoginController {
   private loginService: LoginService;
 
@@ -18,11 +15,12 @@ export class LoginController {
   public async login(req: Request, res: Response) {
     try {
       const { nome, senha } = req.body;
-      const loginSuccess = await this.loginService.login(nome, senha, req);
-      if (loginSuccess) {
+      const token = await this.loginService.login(nome, senha);
+      if (token) {
         this.sendResponse(res, {
           code: 200,
           message: "Login realizado com sucesso",
+          data: { token },
         });
       } else {
         this.sendResponse(res, { code: 401, message: "Login falhou" });
@@ -52,20 +50,22 @@ export class LoginController {
     }
   }
 
-  public logout(req: Request, res: Response) {
-    req.session.destroy((err: Error | null) => {
-      if (err) {
+  public async logout(req: Request, res: Response) {
+    try {
+      const token = req.headers.token as string | undefined;
+      if (!token) {
         return this.sendResponse(res, {
-          code: 500,
-          message: "Não foi possível realizar o logout.",
+          code: 401,
+          message: "Token não fornecido.",
         });
       }
-
-      res.clearCookie("connect.sid");
+      await this.loginService.logout(token, null);
       this.sendResponse(res, {
         code: 200,
         message: "Logout realizado com sucesso.",
       });
-    });
+    } catch (error: any) {
+      this.sendResponse(res, { code: 500, message: error.message });
+    }
   }
 }

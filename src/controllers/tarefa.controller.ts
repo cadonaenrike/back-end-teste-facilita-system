@@ -10,7 +10,7 @@ export class TarefaController {
   }
 
   private sendResponse(res: Response, responseDto: ResponseDto) {
-    return res.status(responseDto.code).json(responseDto);
+    res.status(responseDto.code).json(responseDto);
   }
 
   private handleError(error: unknown): string {
@@ -19,9 +19,27 @@ export class TarefaController {
       : "Ocorreu um erro desconhecido";
   }
 
+  private getUserIdFromRequest(
+    req: Request,
+    res: Response
+  ): number | undefined {
+    const userId = req.userId;
+    if (typeof userId !== "number") {
+      this.sendResponse(res, {
+        code: 403,
+        message: "Usuário não autenticado",
+      });
+      return undefined;
+    }
+    return userId;
+  }
+
   public async getAllTarefas(req: Request, res: Response) {
+    const userId = this.getUserIdFromRequest(req, res);
+    if (userId === undefined) return;
+
     try {
-      const tarefas = await this.tarefaService.getAllTarefas();
+      const tarefas = await this.tarefaService.getAllTarefas(userId);
       this.sendResponse(res, {
         code: 200,
         message: "Tarefas recuperadas com sucesso",
@@ -33,9 +51,12 @@ export class TarefaController {
   }
 
   public async getTarefaByCodigo(req: Request, res: Response) {
+    const userId = this.getUserIdFromRequest(req, res);
+    if (userId === undefined) return;
+
     try {
       const codigo = parseInt(req.params.codigo);
-      const tarefa = await this.tarefaService.getTarefaByCodigo(codigo);
+      const tarefa = await this.tarefaService.getTarefaByCodigo(userId, codigo);
 
       if (tarefa) {
         this.sendResponse(res, {
@@ -55,30 +76,31 @@ export class TarefaController {
   }
 
   public async createTarefa(req: Request, res: Response) {
+    const userId = this.getUserIdFromRequest(req, res);
+    if (userId === undefined) return;
+
     try {
-      const idUser = req.session.userId;
       const { tarefa } = req.body;
-      if (!idUser) {
-        return this.sendResponse(res, {
-          code: 403,
-          message: "Usuário não autenticado",
-        });
-      }
-      const novaTarefa = await this.tarefaService.createTarefa(idUser, tarefa);
+      const novaTarefa = await this.tarefaService.createTarefa(userId, tarefa);
       this.sendResponse(res, {
         code: 201,
         message: "Tarefa criada com sucesso",
         data: novaTarefa,
       });
     } catch (error: any) {
-      this.sendResponse(res, { code: 400, message: error.message });
+      this.sendResponse(res, { code: 400, message: this.handleError(error) });
     }
   }
+
   public async updateTarefa(req: Request, res: Response) {
+    const userId = this.getUserIdFromRequest(req, res);
+    if (userId === undefined) return;
+
     try {
       const codigo = parseInt(req.params.codigo);
       const { tarefa } = req.body;
       const tarefaAtualizada = await this.tarefaService.updateTarefa(
+        userId,
         codigo,
         tarefa
       );
@@ -93,9 +115,12 @@ export class TarefaController {
   }
 
   public async deleteTarefa(req: Request, res: Response) {
+    const userId = this.getUserIdFromRequest(req, res);
+    if (userId === undefined) return;
+
     try {
       const codigo = parseInt(req.params.codigo);
-      await this.tarefaService.deleteTarefa(codigo);
+      await this.tarefaService.deleteTarefa(userId, codigo);
       this.sendResponse(res, {
         code: 200,
         message: "Tarefa excluída com sucesso",

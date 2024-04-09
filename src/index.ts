@@ -1,9 +1,9 @@
+// server.ts
 import express, { Application, Request, Response } from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import csurf from "csurf";
-import tarefasRoutes from "./routes/tarefa.routes";
+import { tarefasRouter } from "./routes/tarefa.routes";
 import { loginRouter } from "./routes/login.routes";
 
 dotenv.config();
@@ -15,14 +15,7 @@ app.use(express.json());
 app.use(cors());
 app.use(cookieParser());
 
-const csrfProtection = csurf({ cookie: true });
-
-app.get("/csrf-token", csrfProtection, (req: Request, res: Response) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
-app.use("/api", tarefasRoutes);
-
+app.use("/tarefas", tarefasRouter);
 app.use("/api", loginRouter);
 
 app.get("/", (req: Request, res: Response) => {
