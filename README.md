@@ -47,9 +47,9 @@ A autenticação é implementada sem JWT, usando um token de sessão armazenado 
 
 ### Rotas de Autenticação:
 
-- **POST /register**: Para registrar um novo usuário.
-- **POST /login**: Para login do usuário, retornando um token de sessão.
-- **POST /logout**: Para invalidar o token de sessão atual.
+- **POST /api/register**: Para registrar um novo usuário.
+- **POST /api/login**: Para login do usuário, retornando um token de sessão.
+- **POST /api/logout**: Para invalidar o token de sessão atual.
 
 ## CRUD de Tarefas
 
